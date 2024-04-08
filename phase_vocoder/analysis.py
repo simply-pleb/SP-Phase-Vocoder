@@ -1,36 +1,35 @@
 import numpy as np
-import matplotlib.pyplot as plt
-from scipy.io import wavfile
 
-def hanning_window(N):
-    """
-    Generate Hanning window of length N.
-    """
-    return 0.5 - 0.5 * np.cos(2 * np.pi * np.arange(N) / (N - 1))
+import phase_vocoder.constants as constants
 
-# Read audio data from WAV file
-filename = 'samples/test_mono.wav'  # Provide the path to your WAV file
-fs, x = wavfile.read(filename)
+def frame_signal(signal: np.array) -> list:
+    L = (len(signal) - constants.N) // constants.HOP_A + 1  # Number of frames
+    frames = np.zeros((L, constants.N))  # Initialize array to store frames
 
-# Define parameters for spectrogram
-N = 256  # Length of the windowed segments
-overlap = 128  # Overlap between segments
-w = hanning_window(N)  # Hanning window
+    for l in range(L):
+        start = l * constants.HOP_A  # Start index of the frame
+        end = start + constants.N  # End index of the frame
+        frames[l] = signal[start:end]  # Extract frame from signal
 
-# Compute spectrogram manually using DFT
-spectrogram = []
-for i in range(0, len(x) - N, overlap):
-    segment = x[i:i + N] * w
-    X = np.fft.fft(segment, n=N)
-    spectrogram.append(np.abs(X))
+    return frames
 
-# Convert to numpy array
-spectrogram = np.array(spectrogram).T
+def dft(signal: np.array) -> np.array:    
+    w = np.hanning(constants.N)
+    signal = signal * w
+    
+    spectrum = np.fft.fft(signal)
 
-# Plot the spectrogram
-plt.imshow(spectrogram, aspect='auto', origin='lower', extent=[0, len(x) / fs, 0, fs / 2])
-plt.xlabel('Time [s]')
-plt.ylabel('Frequency [Hz]')
-plt.title('Spectrogram')
-plt.colorbar(label='Intensity [dB]')
-plt.show()
+    return spectrum
+
+def perform_analysis(signal: np.array) -> np.array:
+    signal_frames = frame_signal(signal)
+    
+    # Perform DFT on each frame
+    frame_spectra = []
+    for frame in signal_frames:
+        spectrum = dft(frame)
+        # Apply magnitude thresholding
+        spectrum[np.abs(spectrum) < constants.THRESHOLD_E] = 0
+        frame_spectra.append(spectrum)
+    
+    return frame_spectra
