@@ -1,8 +1,10 @@
 # SP-Phase-Vocoder
 
-This repository contains a python implementation of Phase Vocoder based on [Guitar Pitch Shifter](https://www.guitarpitchshifter.com/algorithm.html). A summary of the method is provided in the _Report_ directory.
+This repository contains a python implementation of Phase Vocoder based on [Guitar Pitch Shifter](https://www.guitarpitchshifter.com/algorithm.html). A summary of the method is provided in the _report_ directory.
 
 The Algorithm is used to scale a digital signal over the time domain by a factor of $s$ without changing the pitch.
+
+Sample outputs are provided in the _samples_ directory.
 
 ## Installation
 
